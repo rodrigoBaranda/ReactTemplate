@@ -1,0 +1,44 @@
+[
+  {
+    "shipment_id":"SH-2024-001",
+    "current_lat":32.8075,
+    "current_lon":-29.1566,
+    "progress":62.8,
+    "status":"At Risk"
+  },
+  {
+    "shipment_id":"SH-2024-002",
+    "current_lat":48.579,
+    "current_lon":-18.8931,
+    "progress":29.8,
+    "status":"In Transit"
+  },
+  {
+    "shipment_id":"SH-2024-003",
+    "current_lat":11.0293,
+    "current_lon":84.1919,
+    "progress":40.5,
+    "status":"In Transit"
+  },
+  {
+    "shipment_id":"SH-2024-004",
+    "current_lat":48.4398,
+    "current_lon":-27.017,
+    "progress":45.6,
+    "status":"In Transit"
+  },
+  {
+    "shipment_id":"SH-2024-005",
+    "current_lat":36.3063,
+    "current_lon":-9.0525,
+    "progress":51.9,
+    "status":"In Transit"
+  },
+  {
+    "shipment_id":"SH-2024-006",
+    "current_lat":44.6134,
+    "current_lon":-56.711,
+    "progress":75.0,
+    "status":"In Transit"
+  }
+]

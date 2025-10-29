@@ -1,0 +1,38 @@
+[
+  {
+    "carrier":"Maersk Line",
+    "avg_delay_hours":4.0,
+    "delay_count":15,
+    "primary_reason":"Customs"
+  },
+  {
+    "carrier":"MSC",
+    "avg_delay_hours":9.1,
+    "delay_count":7,
+    "primary_reason":"Customs"
+  },
+  {
+    "carrier":"CMA CGM",
+    "avg_delay_hours":9.7,
+    "delay_count":9,
+    "primary_reason":"Weather"
+  },
+  {
+    "carrier":"Hapag-Lloyd",
+    "avg_delay_hours":5.6,
+    "delay_count":13,
+    "primary_reason":"Equipment Issues"
+  },
+  {
+    "carrier":"COSCO",
+    "avg_delay_hours":10.6,
+    "delay_count":12,
+    "primary_reason":"Equipment Issues"
+  },
+  {
+    "carrier":"ONE",
+    "avg_delay_hours":5.3,
+    "delay_count":20,
+    "primary_reason":"Documentation"
+  }
+]

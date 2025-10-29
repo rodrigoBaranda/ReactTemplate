@@ -1,0 +1,80 @@
+[
+  {
+    "id":"SH-2024-001",
+    "origin":"Shanghai, China",
+    "destination":"Los Angeles, USA",
+    "origin_lat":31.2304,
+    "origin_lon":121.4737,
+    "dest_lat":33.7405,
+    "dest_lon":-118.27,
+    "status":"At Risk",
+    "eta":"2025-11-05",
+    "priority":"High",
+    "carrier":"COSCO"
+  },
+  {
+    "id":"SH-2024-002",
+    "origin":"Rotterdam, Netherlands",
+    "destination":"New York, USA",
+    "origin_lat":51.9225,
+    "origin_lon":4.4792,
+    "dest_lat":40.6895,
+    "dest_lon":-74.0447,
+    "status":"In Transit",
+    "eta":"2025-11-03",
+    "priority":"High",
+    "carrier":"CMA CGM"
+  },
+  {
+    "id":"SH-2024-003",
+    "origin":"Singapore",
+    "destination":"Dubai, UAE",
+    "origin_lat":1.3521,
+    "origin_lon":103.8198,
+    "dest_lat":25.276,
+    "dest_lon":55.2962,
+    "status":"In Transit",
+    "eta":"2025-11-06",
+    "priority":"High",
+    "carrier":"CMA CGM"
+  },
+  {
+    "id":"SH-2024-004",
+    "origin":"Hamburg, Germany",
+    "destination":"Boston, USA",
+    "origin_lat":53.5453,
+    "origin_lon":9.968,
+    "dest_lat":42.3601,
+    "dest_lon":-71.0589,
+    "status":"In Transit",
+    "eta":"2025-11-04",
+    "priority":"Medium",
+    "carrier":"ONE"
+  },
+  {
+    "id":"SH-2024-005",
+    "origin":"Hong Kong",
+    "destination":"Vancouver, Canada",
+    "origin_lat":22.2908,
+    "origin_lon":114.1501,
+    "dest_lat":49.2827,
+    "dest_lon":-123.1207,
+    "status":"In Transit",
+    "eta":"2025-11-04",
+    "priority":"Low",
+    "carrier":"Maersk Line"
+  },
+  {
+    "id":"SH-2024-006",
+    "origin":"Tokyo, Japan",
+    "destination":"Seattle, USA",
+    "origin_lat":35.6532,
+    "origin_lon":139.7574,
+    "dest_lat":47.6062,
+    "dest_lon":-122.3321,
+    "status":"In Transit",
+    "eta":"2025-11-04",
+    "priority":"Critical",
+    "carrier":"CMA CGM"
+  }
+]

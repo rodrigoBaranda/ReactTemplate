@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ALT-001",
+    "severity": "Medium",
+    "message": "Customs clearance issue for SH-2024-001",
+    "timestamp": "2025-10-29T19:55:53.955633",
+    "shipmentId": "SH-2024-001"
+  },
+  {
+    "id": "ALT-002",
+    "severity": "Low",
+    "message": "Carrier schedule change - MSC line delayed by 6 hours",
+    "timestamp": "2025-10-29T16:55:53.955651",
+    "shipmentId": null
+  }
+]
