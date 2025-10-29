@@ -5,12 +5,14 @@ import 'leaflet/dist/leaflet.css';
 import { theme } from '../styles/theme';
 
 // Fix for default marker icons in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+if (L.Icon.Default.prototype._getIconUrl) {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
+}
 
 function MapView() {
   const [shipments, setShipments] = useState([]);
@@ -138,22 +140,26 @@ function MapView() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {shipmentTracking.map((ship) => (
-            <div key={ship.id}>
-              {/* Route line from origin to destination */}
-              <Polyline
-                positions={[
-                  [ship.origin_lat, ship.origin_lon],
-                  [ship.dest_lat, ship.dest_lon]
-                ]}
-                color={getMarkerColor(ship.status)}
-                opacity={0.4}
-                weight={2}
-              />
+          {shipmentTracking.map((ship) => {
+            if (!ship.current_lat || !ship.current_lon) return null;
 
-              {/* Current position marker */}
-              {ship.current_lat && ship.current_lon && (
+            return (
+              <>
+                {/* Route line from origin to destination */}
+                <Polyline
+                  key={`line-${ship.id}`}
+                  positions={[
+                    [ship.origin_lat, ship.origin_lon],
+                    [ship.dest_lat, ship.dest_lon]
+                  ]}
+                  color={getMarkerColor(ship.status)}
+                  opacity={0.4}
+                  weight={2}
+                />
+
+                {/* Current position marker */}
                 <Marker
+                  key={`marker-${ship.id}`}
                   position={[ship.current_lat, ship.current_lon]}
                   icon={createCustomIcon(ship.status)}
                 >
@@ -181,9 +187,9 @@ function MapView() {
                     </div>
                   </Popup>
                 </Marker>
-              )}
-            </div>
-          ))}
+              </>
+            );
+          })}
         </MapContainer>
       </div>
 

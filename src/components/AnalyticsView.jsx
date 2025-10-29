@@ -147,7 +147,7 @@ function AnalyticsView() {
     const container = delayChartRef.current;
     d3.select(container).select('svg').remove();
 
-    const margin = { top: 20, right: 30, bottom: 80, left: 60 };
+    const margin = { top: 30, right: 30, bottom: 90, left: 70 };
     const width = container.clientWidth - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
@@ -158,44 +158,82 @@ function AnalyticsView() {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+    // Create gradient for Accenture purple
+    const defs = svg.append('defs');
+    const gradient = defs.append('linearGradient')
+      .attr('id', 'purpleGradient')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%');
+
+    gradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', theme.colors.primary)
+      .attr('stop-opacity', 1);
+
+    gradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', theme.colors.primary)
+      .attr('stop-opacity', 0.7);
+
     // X scale
     const x = d3.scaleBand()
       .domain(delayAnalysis.map(d => d.carrier))
       .range([0, width])
-      .padding(0.3);
+      .padding(0.4);
 
-    // Y scale
+    // Y scale with some padding at top
+    const maxDelay = d3.max(delayAnalysis, d => d.avg_delay_hours);
     const y = d3.scaleLinear()
-      .domain([0, d3.max(delayAnalysis, d => d.avg_delay_hours)])
+      .domain([0, maxDelay * 1.15])
       .range([height, 0]);
 
-    // X axis
+    // X axis with Accenture styling
     svg.append('g')
       .attr('transform', `translate(0,${height})`)
       .call(d3.axisBottom(x))
       .selectAll('text')
-      .attr('transform', 'rotate(-45)')
+      .attr('transform', 'rotate(-35)')
       .style('text-anchor', 'end')
-      .style('font-size', '12px');
+      .style('font-size', '13px')
+      .style('font-weight', '500')
+      .style('fill', theme.colors.text);
 
-    // Y axis
-    svg.append('g')
-      .call(d3.axisLeft(y).ticks(5))
-      .style('font-size', '12px');
+    // Y axis with grid lines
+    const yAxis = svg.append('g')
+      .call(d3.axisLeft(y).ticks(6))
+      .style('font-size', '12px')
+      .style('font-weight', '500');
+
+    // Add grid lines
+    svg.selectAll('line.grid')
+      .data(y.ticks(6))
+      .enter()
+      .append('line')
+      .attr('class', 'grid')
+      .attr('x1', 0)
+      .attr('x2', width)
+      .attr('y1', d => y(d))
+      .attr('y2', d => y(d))
+      .attr('stroke', theme.colors.border)
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', 0.3);
 
     // Y axis label
     svg.append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - margin.left)
+      .attr('y', 0 - margin.left + 10)
       .attr('x', 0 - height / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('font-size', '14px')
       .style('font-weight', '600')
+      .style('fill', theme.colors.text)
       .text('Average Delay (hours)');
 
-    // Bars
-    svg.selectAll('bar')
+    // Bars with gradient
+    const bars = svg.selectAll('bar')
       .data(delayAnalysis)
       .enter()
       .append('rect')
@@ -203,31 +241,68 @@ function AnalyticsView() {
       .attr('width', x.bandwidth())
       .attr('y', height)
       .attr('height', 0)
-      .attr('fill', theme.colors.warning)
+      .attr('fill', 'url(#purpleGradient)')
+      .attr('rx', 4)
       .style('cursor', 'pointer')
-      .transition()
-      .duration(800)
+      .on('mouseover', function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('opacity', 0.8);
+      })
+      .on('mouseout', function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('opacity', 1);
+      });
+
+    // Animate bars
+    bars.transition()
+      .duration(1000)
+      .delay((d, i) => i * 100)
       .attr('y', d => y(d.avg_delay_hours))
       .attr('height', d => height - y(d.avg_delay_hours));
 
-    // Add value labels on bars
-    svg.selectAll('text.label')
+    // Add value labels on bars with white background
+    const labels = svg.selectAll('text.label')
       .data(delayAnalysis)
       .enter()
-      .append('text')
-      .attr('class', 'label')
+      .append('g')
+      .attr('class', 'label-group');
+
+    labels.append('rect')
+      .attr('x', d => x(d.carrier) + x.bandwidth() / 2 - 20)
+      .attr('y', d => y(d.avg_delay_hours) - 25)
+      .attr('width', 40)
+      .attr('height', 20)
+      .attr('fill', 'white')
+      .attr('rx', 3)
+      .attr('stroke', theme.colors.primary)
+      .attr('stroke-width', 1.5)
+      .style('opacity', 0)
+      .transition()
+      .delay((d, i) => i * 100 + 1000)
+      .duration(300)
+      .style('opacity', 1);
+
+    labels.append('text')
       .attr('x', d => x(d.carrier) + x.bandwidth() / 2)
-      .attr('y', d => y(d.avg_delay_hours) - 5)
+      .attr('y', d => y(d.avg_delay_hours) - 11)
       .attr('text-anchor', 'middle')
-      .style('font-size', '12px')
+      .style('font-size', '13px')
       .style('font-weight', 'bold')
-      .style('fill', theme.colors.text)
-      .text(d => d.avg_delay_hours.toFixed(1) + 'h');
+      .style('fill', theme.colors.primary)
+      .style('opacity', 0)
+      .text(d => d.avg_delay_hours.toFixed(1) + 'h')
+      .transition()
+      .delay((d, i) => i * 100 + 1000)
+      .duration(300)
+      .style('opacity', 1);
 
     // Add tooltips
-    svg.selectAll('rect')
-      .append('title')
-      .text(d => `${d.carrier}\nAvg Delay: ${d.avg_delay_hours}h\nIncidents: ${d.delay_count}\nReason: ${d.primary_reason}`);
+    bars.append('title')
+      .text(d => `${d.carrier}\nAvg Delay: ${d.avg_delay_hours.toFixed(1)} hours\nIncidents: ${d.delay_count}\nPrimary Reason: ${d.primary_reason}`);
   };
 
   const styles = {
