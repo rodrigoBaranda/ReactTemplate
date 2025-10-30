@@ -1,23 +1,14 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { Map, Marker, Overlay } from 'pigeon-maps';
 import { theme } from '../styles/theme';
-
-// Fix for default marker icons in react-leaflet
-if (L.Icon.Default.prototype._getIconUrl) {
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  });
-}
 
 function MapView() {
   const [shipments, setShipments] = useState([]);
   const [tracking, setTracking] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedShipment, setSelectedShipment] = useState(null);
+  const [center, setCenter] = useState([20, 0]);
+  const [zoom, setZoom] = useState(2);
 
   useEffect(() => {
     Promise.all([
@@ -35,7 +26,7 @@ function MapView() {
       });
   }, []);
 
-  const getMarkerColor = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'On Track':
         return theme.colors.success;
@@ -50,20 +41,20 @@ function MapView() {
     }
   };
 
-  const createCustomIcon = (status) => {
-    const color = getMarkerColor(status);
-    return L.divIcon({
-      className: 'custom-marker',
-      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
-    });
+  const createMarkerSVG = (color) => {
+    return `
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" fill="${color}" stroke="white" stroke-width="2"/>
+        <circle cx="12" cy="12" r="4" fill="white" opacity="0.5"/>
+      </svg>
+    `;
   };
 
   const styles = {
     container: {
       padding: theme.spacing.xl,
-      backgroundColor: theme.colors.backgroundLight
+      backgroundColor: theme.colors.backgroundLight,
+      minHeight: 'calc(100vh - 100px)'
     },
     header: {
       marginBottom: theme.spacing.lg
@@ -74,12 +65,66 @@ function MapView() {
       color: theme.colors.text,
       marginBottom: theme.spacing.sm
     },
-    mapWrapper: {
+    mapContainer: {
+      position: 'relative',
       height: '700px',
       borderRadius: theme.borderRadius.md,
       overflow: 'hidden',
       boxShadow: theme.shadows.lg,
-      border: `1px solid ${theme.colors.border}`
+      border: `1px solid ${theme.colors.border}`,
+      backgroundColor: theme.colors.white
+    },
+    markerButton: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 0,
+      width: '24px',
+      height: '24px'
+    },
+    popup: {
+      backgroundColor: theme.colors.white,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md,
+      boxShadow: theme.shadows.lg,
+      border: `2px solid ${theme.colors.primary}`,
+      minWidth: '250px',
+      maxWidth: '300px',
+      position: 'relative'
+    },
+    popupTitle: {
+      margin: '0 0 12px 0',
+      fontSize: '18px',
+      fontWeight: '600',
+      color: theme.colors.primary,
+      borderBottom: `2px solid ${theme.colors.primary}`,
+      paddingBottom: '8px'
+    },
+    popupRow: {
+      margin: '8px 0',
+      fontSize: '14px',
+      color: theme.colors.text
+    },
+    popupLabel: {
+      fontWeight: '600',
+      marginRight: '8px'
+    },
+    closeButton: {
+      position: 'absolute',
+      top: '8px',
+      right: '8px',
+      background: theme.colors.danger,
+      color: theme.colors.white,
+      border: 'none',
+      borderRadius: '50%',
+      width: '24px',
+      height: '24px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: 'bold',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     },
     legend: {
       marginTop: theme.spacing.md,
@@ -88,7 +133,8 @@ function MapView() {
       borderRadius: theme.borderRadius.md,
       display: 'flex',
       gap: theme.spacing.xl,
-      justifyContent: 'center'
+      justifyContent: 'center',
+      flexWrap: 'wrap'
     },
     legendItem: {
       display: 'flex',
@@ -96,14 +142,20 @@ function MapView() {
       gap: theme.spacing.sm
     },
     legendDot: (color) => ({
-      width: '12px',
-      height: '12px',
+      width: '16px',
+      height: '16px',
       borderRadius: '50%',
-      backgroundColor: color
+      backgroundColor: color,
+      border: '2px solid white',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
     }),
     legendLabel: {
       fontSize: '14px',
-      color: theme.colors.text
+      color: theme.colors.text,
+      fontWeight: '500'
+    },
+    routeLine: {
+      pointerEvents: 'none'
     }
   };
 
@@ -121,7 +173,7 @@ function MapView() {
   const shipmentTracking = shipments.map(ship => {
     const track = tracking.find(t => t.shipment_id === ship.id);
     return { ...ship, ...track };
-  });
+  }).filter(ship => ship.current_lat && ship.current_lon);
 
   return (
     <div style={styles.container}>
@@ -129,68 +181,114 @@ function MapView() {
         <h2 style={styles.title}>Real-Time Shipment Tracking</h2>
       </div>
 
-      <div style={styles.mapWrapper}>
-        <MapContainer
-          center={[20, 0]}
-          zoom={2}
-          style={{ height: '100%', width: '100%' }}
+      <div style={styles.mapContainer}>
+        <Map
+          center={center}
+          zoom={zoom}
+          onBoundsChanged={({ center, zoom }) => {
+            setCenter(center);
+            setZoom(zoom);
+          }}
+          height={700}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {shipmentTracking.map((ship) => {
-            if (!ship.current_lat || !ship.current_lon) return null;
-
-            return (
-              <>
-                {/* Route line from origin to destination */}
-                <Polyline
-                  key={`line-${ship.id}`}
-                  positions={[
-                    [ship.origin_lat, ship.origin_lon],
-                    [ship.dest_lat, ship.dest_lon]
-                  ]}
-                  color={getMarkerColor(ship.status)}
-                  opacity={0.4}
-                  weight={2}
+          {/* Draw route lines */}
+          {shipmentTracking.map((ship) => (
+            <Overlay
+              key={`route-${ship.id}`}
+              anchor={[ship.origin_lat, ship.origin_lon]}
+            >
+              <svg
+                width="100%"
+                height="100%"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  pointerEvents: 'none',
+                  overflow: 'visible'
+                }}
+              >
+                <line
+                  x1="0"
+                  y1="0"
+                  x2={(ship.dest_lon - ship.origin_lon) * 100}
+                  y2={(ship.dest_lat - ship.origin_lat) * 100}
+                  stroke={getStatusColor(ship.status)}
+                  strokeWidth="2"
+                  strokeOpacity="0.4"
+                  strokeDasharray="5,5"
                 />
+              </svg>
+            </Overlay>
+          ))}
 
-                {/* Current position marker */}
-                <Marker
-                  key={`marker-${ship.id}`}
-                  position={[ship.current_lat, ship.current_lon]}
-                  icon={createCustomIcon(ship.status)}
+          {/* Draw markers */}
+          {shipmentTracking.map((ship) => (
+            <Marker
+              key={`marker-${ship.id}`}
+              anchor={[ship.current_lat, ship.current_lon]}
+              onClick={() => setSelectedShipment(ship)}
+            >
+              <button style={styles.markerButton}>
+                <div
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: getStatusColor(ship.status),
+                    border: '3px solid white',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                    cursor: 'pointer'
+                  }}
+                />
+              </button>
+            </Marker>
+          ))}
+
+          {/* Show popup for selected shipment */}
+          {selectedShipment && (
+            <Overlay
+              anchor={[selectedShipment.current_lat, selectedShipment.current_lon]}
+              offset={[0, -40]}
+            >
+              <div style={styles.popup}>
+                <button
+                  style={styles.closeButton}
+                  onClick={() => setSelectedShipment(null)}
                 >
-                  <Popup>
-                    <div style={{ minWidth: '200px' }}>
-                      <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{ship.id}</h3>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>Status:</strong> {ship.status}
-                      </p>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>Progress:</strong> {ship.progress}%
-                      </p>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>From:</strong> {ship.origin}
-                      </p>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>To:</strong> {ship.destination}
-                      </p>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>ETA:</strong> {ship.eta}
-                      </p>
-                      <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                        <strong>Carrier:</strong> {ship.carrier}
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-              </>
-            );
-          })}
-        </MapContainer>
+                  ×
+                </button>
+                <h3 style={styles.popupTitle}>{selectedShipment.id}</h3>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>Status:</span>
+                  <span style={{ color: getStatusColor(selectedShipment.status) }}>
+                    {selectedShipment.status}
+                  </span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>Progress:</span>
+                  <span>{selectedShipment.progress}%</span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>From:</span>
+                  <span>{selectedShipment.origin}</span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>To:</span>
+                  <span>{selectedShipment.destination}</span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>ETA:</span>
+                  <span>{selectedShipment.eta}</span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>Carrier:</span>
+                  <span>{selectedShipment.carrier}</span>
+                </div>
+              </div>
+            </Overlay>
+          )}
+        </Map>
       </div>
 
       <div style={styles.legend}>

@@ -4,35 +4,49 @@ import json
 from datetime import datetime, timedelta
 import os
 
-# Port coordinates (lat, lon)
+# Port coordinates (lat, lon) - Ocean freight to Mexico
 PORT_COORDS = {
+    # Origins - Primarily China and Asia
     'Shanghai, China': [31.2304, 121.4737],
-    'Rotterdam, Netherlands': [51.9225, 4.4792],
-    'Singapore': [1.3521, 103.8198],
-    'Los Angeles, USA': [33.7405, -118.2700],
-    'New York, USA': [40.6895, -74.0447],
-    'Dubai, UAE': [25.2760, 55.2962],
-    'Hamburg, Germany': [53.5453, 9.9680],
-    'Boston, USA': [42.3601, -71.0589],
+    'Shenzhen, China': [22.5431, 114.0579],
+    'Ningbo, China': [29.8683, 121.544],
     'Hong Kong': [22.2908, 114.1501],
-    'Vancouver, Canada': [49.2827, -123.1207],
-    'Tokyo, Japan': [35.6532, 139.7574],
-    'Seattle, USA': [47.6062, -122.3321]
+    'Singapore': [1.3521, 103.8198],
+    'Busan, South Korea': [35.1796, 129.0756],
+    # Transshipment ports
+    'Los Angeles, USA': [33.7405, -118.2700],
+    'Long Beach, USA': [33.7701, -118.1937],
+    # Occasional European origins
+    'Rotterdam, Netherlands': [51.9225, 4.4792],
+    'Hamburg, Germany': [53.5453, 9.9680],
+    # Mexico destinations - Primary ports
+    'Veracruz, Mexico': [19.1738, -96.1342],
+    'Manzanillo, Mexico': [19.0543, -104.3188],
+    'Lázaro Cárdenas, Mexico': [17.9565, -102.2004],
+    # Mexico destinations - Inland cities
+    'Nuevo Laredo, Mexico': [27.5008, -99.5161],
+    'Monterrey, Mexico': [25.6866, -100.3161],
+    'Mexico City, Mexico': [19.4326, -99.1332],
+    'Guadalajara, Mexico': [20.6597, -103.3496],
+    'Tijuana, Mexico': [32.5149, -117.0382]
 }
 
 def generate_shipments():
-    """Generate shipments DataFrame"""
+    """Generate shipments DataFrame - Ocean freight to Mexico"""
     np.random.seed(42)
 
+    # Ocean freight routes to Mexico
     routes = [
-        ('Shanghai, China', 'Los Angeles, USA'),
-        ('Rotterdam, Netherlands', 'New York, USA'),
-        ('Singapore', 'Dubai, UAE'),
-        ('Hamburg, Germany', 'Boston, USA'),
-        ('Hong Kong', 'Vancouver, Canada'),
-        ('Tokyo, Japan', 'Seattle, USA'),
-        ('Shanghai, China', 'Seattle, USA'),
-        ('Singapore', 'Los Angeles, USA')
+        ('Shanghai, China', 'Veracruz, Mexico'),
+        ('Shenzhen, China', 'Manzanillo, Mexico'),
+        ('Ningbo, China', 'Lázaro Cárdenas, Mexico'),
+        ('Hong Kong', 'Veracruz, Mexico'),
+        ('Singapore', 'Manzanillo, Mexico'),
+        ('Busan, South Korea', 'Lázaro Cárdenas, Mexico'),
+        ('Shanghai, China', 'Monterrey, Mexico'),
+        ('Los Angeles, USA', 'Nuevo Laredo, Mexico'),  # Transshipment
+        ('Shenzhen, China', 'Mexico City, Mexico'),
+        ('Rotterdam, Netherlands', 'Veracruz, Mexico')  # Occasional European
     ]
 
     statuses = ['In Transit', 'On Track', 'At Risk', 'Delayed']
@@ -40,9 +54,10 @@ def generate_shipments():
     carriers = ['Maersk Line', 'MSC', 'CMA CGM', 'Hapag-Lloyd', 'COSCO', 'ONE']
 
     shipments_data = []
-    for i in range(6):
+    for i in range(10):  # Generate 10 shipments to cover more routes
         origin, dest = routes[i % len(routes)]
-        eta_days = np.random.randint(1, 10)
+        # Ocean freight from China/Asia to Mexico: 18-25 days typical
+        eta_days = np.random.randint(18, 26)
 
         shipment = {
             'id': f'SH-2024-{str(i+1).zfill(3)}',
