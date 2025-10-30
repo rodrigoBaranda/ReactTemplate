@@ -88,12 +88,23 @@ def generate_tracking(shipments_df):
         current_lat = shipment['origin_lat'] + (shipment['dest_lat'] - shipment['origin_lat']) * progress
         current_lon = shipment['origin_lon'] + (shipment['dest_lon'] - shipment['origin_lon']) * progress
 
+        # Calculate lateness probability based on status
+        if shipment['status'] == 'Delayed':
+            lateness_prob = np.random.uniform(70, 95)
+        elif shipment['status'] == 'At Risk':
+            lateness_prob = np.random.uniform(40, 70)
+        elif shipment['status'] == 'In Transit':
+            lateness_prob = np.random.uniform(10, 40)
+        else:  # On Track
+            lateness_prob = np.random.uniform(0, 30)
+
         tracking = {
             'shipment_id': shipment['id'],
             'current_lat': round(current_lat, 4),
             'current_lon': round(current_lon, 4),
             'progress': round(progress * 100, 1),
-            'status': shipment['status']
+            'status': shipment['status'],
+            'lateness_probability': round(lateness_prob, 1)
         }
         tracking_data.append(tracking)
 

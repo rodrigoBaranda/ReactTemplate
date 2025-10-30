@@ -41,6 +41,13 @@ function MapView() {
     }
   };
 
+  const getLatenessColor = (probability) => {
+    if (probability >= 70) return theme.colors.danger;      // High risk: red
+    if (probability >= 40) return theme.colors.warning;     // Medium risk: yellow
+    if (probability >= 20) return '#3498db';                // Low-medium risk: blue
+    return theme.colors.success;                            // Low risk: green
+  };
+
   const createMarkerSVG = (color) => {
     return `
       <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -191,57 +198,109 @@ function MapView() {
           }}
           height={700}
         >
-          {/* Draw route lines */}
-          {shipmentTracking.map((ship) => (
-            <Overlay
-              key={`route-${ship.id}`}
-              anchor={[ship.origin_lat, ship.origin_lon]}
-            >
-              <svg
-                width="100%"
-                height="100%"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  pointerEvents: 'none',
-                  overflow: 'visible'
-                }}
-              >
-                <line
-                  x1="0"
-                  y1="0"
-                  x2={(ship.dest_lon - ship.origin_lon) * 100}
-                  y2={(ship.dest_lat - ship.origin_lat) * 100}
-                  stroke={getStatusColor(ship.status)}
-                  strokeWidth="2"
-                  strokeOpacity="0.4"
-                  strokeDasharray="5,5"
-                />
-              </svg>
-            </Overlay>
-          ))}
-
-          {/* Draw markers */}
+          {/* Origin markers */}
           {shipmentTracking.map((ship) => (
             <Marker
-              key={`marker-${ship.id}`}
+              key={`origin-${ship.id}`}
+              anchor={[ship.origin_lat, ship.origin_lon]}
+              onClick={() => setSelectedShipment(ship)}
+            >
+              <div
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  backgroundColor: '#2c3e50',
+                  border: '2px solid white',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                  cursor: 'pointer',
+                  transform: 'rotate(45deg)'
+                }}
+                title={`Origin: ${ship.origin}`}
+              />
+            </Marker>
+          ))}
+
+          {/* Destination markers */}
+          {shipmentTracking.map((ship) => (
+            <Marker
+              key={`dest-${ship.id}`}
+              anchor={[ship.dest_lat, ship.dest_lon]}
+              onClick={() => setSelectedShipment(ship)}
+            >
+              <div
+                style={{
+                  width: '0',
+                  height: '0',
+                  borderLeft: '8px solid transparent',
+                  borderRight: '8px solid transparent',
+                  borderBottom: '24px solid #e74c3c',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  top: '-24px'
+                }}
+                title={`Destination: ${ship.destination}`}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    left: '-4px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: 'white'
+                  }}
+                />
+              </div>
+            </Marker>
+          ))}
+
+          {/* Current position markers with lateness probability */}
+          {shipmentTracking.map((ship) => (
+            <Marker
+              key={`current-${ship.id}`}
               anchor={[ship.current_lat, ship.current_lon]}
               onClick={() => setSelectedShipment(ship)}
             >
-              <button style={styles.markerButton}>
+              <div style={{ position: 'relative', cursor: 'pointer' }}>
+                {/* Pulsing ring for high lateness probability */}
+                {ship.lateness_probability >= 70 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '-10px',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      border: `3px solid ${getLatenessColor(ship.lateness_probability)}`,
+                      animation: 'pulse 2s infinite',
+                      opacity: 0.6
+                    }}
+                  />
+                )}
+                {/* Main marker */}
                 <div
                   style={{
-                    width: '20px',
-                    height: '20px',
+                    width: '24px',
+                    height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: getStatusColor(ship.status),
+                    backgroundColor: getLatenessColor(ship.lateness_probability),
                     border: '3px solid white',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                    cursor: 'pointer'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    color: 'white'
                   }}
-                />
-              </button>
+                  title={`${ship.id} - Lateness: ${ship.lateness_probability}%`}
+                >
+                  {Math.round(ship.lateness_probability)}
+                </div>
+              </div>
             </Marker>
           ))}
 
@@ -249,7 +308,7 @@ function MapView() {
           {selectedShipment && (
             <Overlay
               anchor={[selectedShipment.current_lat, selectedShipment.current_lon]}
-              offset={[0, -40]}
+              offset={[0, -60]}
             >
               <div style={styles.popup}>
                 <button
@@ -263,6 +322,15 @@ function MapView() {
                   <span style={styles.popupLabel}>Status:</span>
                   <span style={{ color: getStatusColor(selectedShipment.status) }}>
                     {selectedShipment.status}
+                  </span>
+                </div>
+                <div style={styles.popupRow}>
+                  <span style={styles.popupLabel}>Lateness Risk:</span>
+                  <span style={{
+                    color: getLatenessColor(selectedShipment.lateness_probability),
+                    fontWeight: 'bold'
+                  }}>
+                    {selectedShipment.lateness_probability}%
                   </span>
                 </div>
                 <div style={styles.popupRow}>
@@ -292,21 +360,32 @@ function MapView() {
       </div>
 
       <div style={styles.legend}>
-        <div style={styles.legendItem}>
-          <div style={styles.legendDot(theme.colors.success)} />
-          <span style={styles.legendLabel}>On Track</span>
+        <div style={{ ...styles.legendItem, borderRight: `2px solid ${theme.colors.border}`, paddingRight: theme.spacing.xl }}>
+          <div style={{ width: '16px', height: '16px', backgroundColor: '#2c3e50', border: '2px solid white', transform: 'rotate(45deg)' }} />
+          <span style={styles.legendLabel}>Origin Port</span>
+        </div>
+        <div style={{ ...styles.legendItem, borderRight: `2px solid ${theme.colors.border}`, paddingRight: theme.spacing.xl }}>
+          <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '18px solid #e74c3c', marginLeft: '5px' }} />
+          <span style={styles.legendLabel}>Destination</span>
         </div>
         <div style={styles.legendItem}>
-          <div style={styles.legendDot(theme.colors.primary)} />
-          <span style={styles.legendLabel}>In Transit</span>
+          <span style={{ ...styles.legendLabel, fontWeight: 'bold', marginRight: theme.spacing.md }}>Lateness Risk:</span>
+        </div>
+        <div style={styles.legendItem}>
+          <div style={styles.legendDot(theme.colors.success)} />
+          <span style={styles.legendLabel}>Low (&lt;20%)</span>
+        </div>
+        <div style={styles.legendItem}>
+          <div style={styles.legendDot('#3498db')} />
+          <span style={styles.legendLabel}>Med-Low (20-40%)</span>
         </div>
         <div style={styles.legendItem}>
           <div style={styles.legendDot(theme.colors.warning)} />
-          <span style={styles.legendLabel}>At Risk</span>
+          <span style={styles.legendLabel}>Medium (40-70%)</span>
         </div>
         <div style={styles.legendItem}>
           <div style={styles.legendDot(theme.colors.danger)} />
-          <span style={styles.legendLabel}>Delayed</span>
+          <span style={styles.legendLabel}>High (&gt;70%)</span>
         </div>
       </div>
     </div>

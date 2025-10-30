@@ -3,28 +3,28 @@
     "id": "ALT-001",
     "severity": "Medium",
     "message": "Customs clearance issue for SH-2024-001",
-    "timestamp": "2025-10-30T06:32:13.517382",
+    "timestamp": "2025-10-30T06:49:52.770047",
     "shipmentId": "SH-2024-001"
   },
   {
     "id": "ALT-002",
     "severity": "Medium",
     "message": "Customs clearance issue for SH-2024-003",
-    "timestamp": "2025-10-30T06:32:13.517404",
+    "timestamp": "2025-10-30T06:49:52.770070",
     "shipmentId": "SH-2024-003"
   },
   {
     "id": "ALT-003",
     "severity": "Medium",
     "message": "Customs clearance issue for SH-2024-010",
-    "timestamp": "2025-10-30T06:32:13.517420",
+    "timestamp": "2025-10-30T06:49:52.770086",
     "shipmentId": "SH-2024-010"
   },
   {
     "id": "ALT-004",
     "severity": "Low",
     "message": "Carrier schedule change - MSC line delayed by 6 hours",
-    "timestamp": "2025-10-30T03:32:13.517423",
+    "timestamp": "2025-10-30T03:49:52.770089",
     "shipmentId": null
   }
 ]

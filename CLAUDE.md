@@ -146,6 +146,33 @@ def test_generate_shipments_returns_dataframe():
     # Assert: verify result
 ```
 
+### Type Hints - MANDATORY
+**All Python functions MUST include type hints:**
+
+```python
+from typing import Dict, List
+import pandas as pd
+
+def generate_shipments() -> pd.DataFrame:
+    """Generate shipments DataFrame - Ocean freight to Mexico"""
+    # implementation
+
+def generate_kpis(shipments_df: pd.DataFrame) -> Dict[str, float]:
+    """Generate KPI metrics"""
+    # implementation
+
+def generate_alerts(shipments_df: pd.DataFrame) -> List[Dict]:
+    """Generate alert messages"""
+    # implementation
+```
+
+**Requirements:**
+- Include type hints for ALL function parameters
+- Include return type hints for ALL functions
+- Use proper typing imports: `Dict`, `List`, `Optional`, etc.
+- For pandas: use `pd.DataFrame` as type
+- For numpy: use `np.ndarray` as type
+
 ## Data Generation
 
 When modifying `data_generator.py`:

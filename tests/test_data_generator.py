@@ -95,7 +95,7 @@ class TestGenerateTracking:
         """Should have all required columns"""
         shipments = generate_shipments()
         result = generate_tracking(shipments)
-        expected_columns = ['shipment_id', 'current_lat', 'current_lon', 'progress', 'status']
+        expected_columns = ['shipment_id', 'current_lat', 'current_lon', 'progress', 'status', 'lateness_probability']
         for col in expected_columns:
             assert col in result.columns
 
@@ -126,6 +126,28 @@ class TestGenerateTracking:
         shipments = generate_shipments()
         result = generate_tracking(shipments)
         assert result['shipment_id'].isin(shipments['id']).all()
+
+    def test_lateness_probability_is_percentage(self):
+        """Lateness probability should be between 0 and 100"""
+        shipments = generate_shipments()
+        result = generate_tracking(shipments)
+        assert (result['lateness_probability'] >= 0).all()
+        assert (result['lateness_probability'] <= 100).all()
+
+    def test_lateness_probability_correlates_with_status(self):
+        """Delayed shipments should have higher lateness probability"""
+        shipments = generate_shipments()
+        result = generate_tracking(shipments)
+
+        # Delayed shipments should have high probability (> 70%)
+        delayed = result[result['status'] == 'Delayed']
+        if len(delayed) > 0:
+            assert (delayed['lateness_probability'] > 70).all()
+
+        # On Track should have low probability (< 30%)
+        on_track = result[result['status'] == 'On Track']
+        if len(on_track) > 0:
+            assert (on_track['lateness_probability'] < 30).all()
 
 
 class TestGenerateDeliveryTrends:
