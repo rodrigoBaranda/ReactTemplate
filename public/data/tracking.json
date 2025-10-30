@@ -1,0 +1,82 @@
+[
+  {
+    "shipment_id":"SH-2024-001",
+    "current_lat":28.2701,
+    "current_lon":68.0431,
+    "progress":24.6,
+    "status":"At Risk",
+    "lateness_probability":68.5
+  },
+  {
+    "shipment_id":"SH-2024-002",
+    "current_lat":19.4871,
+    "current_lon":-77.2275,
+    "progress":87.6,
+    "status":"In Transit",
+    "lateness_probability":34.3
+  },
+  {
+    "shipment_id":"SH-2024-003",
+    "current_lat":24.946,
+    "current_lon":29.0862,
+    "progress":41.3,
+    "status":"At Risk",
+    "lateness_probability":42.9
+  },
+  {
+    "shipment_id":"SH-2024-004",
+    "current_lat":20.1745,
+    "current_lon":-28.6252,
+    "progress":67.9,
+    "status":"In Transit",
+    "lateness_probability":23.2
+  },
+  {
+    "shipment_id":"SH-2024-005",
+    "current_lat":6.4048,
+    "current_lon":44.4115,
+    "progress":28.5,
+    "status":"In Transit",
+    "lateness_probability":24.9
+  },
+  {
+    "shipment_id":"SH-2024-006",
+    "current_lat":31.3204,
+    "current_lon":77.2531,
+    "progress":22.4,
+    "status":"On Track",
+    "lateness_probability":27.3
+  },
+  {
+    "shipment_id":"SH-2024-007",
+    "current_lat":29.1174,
+    "current_lon":36.9394,
+    "progress":38.1,
+    "status":"On Track",
+    "lateness_probability":19.9
+  },
+  {
+    "shipment_id":"SH-2024-008",
+    "current_lat":31.1311,
+    "current_lon":-110.4272,
+    "progress":41.8,
+    "status":"In Transit",
+    "lateness_probability":25.6
+  },
+  {
+    "shipment_id":"SH-2024-009",
+    "current_lat":20.7306,
+    "current_lon":-10.168,
+    "progress":58.3,
+    "status":"In Transit",
+    "lateness_probability":15.5
+  },
+  {
+    "shipment_id":"SH-2024-010",
+    "current_lat":23.1459,
+    "current_lon":-83.9307,
+    "progress":87.9,
+    "status":"At Risk",
+    "lateness_probability":63.3
+  }
+]
